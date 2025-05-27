@@ -55,344 +55,345 @@ def generate_colors(num_colors):
 def generate_echarts_pie(
     data_list: list,
     name_key: str = None,
-    value_key: str = None,
+    value_keys: list = None,
     title: str = None,
-    series_name: str = None
+    series_names: list = None
 ) -> str:
-    """生成通用 ECharts 饼图配置，支持自动推断字段"""
+    """生成通用 ECharts 饼图配置，支持自动推断字段和多维数据"""
     if not data_list:
         raise ValueError("数据列表不能为空")
     
-    # 自动检测 name_key 和 value_key（如果未提供）
-    if not name_key or not value_key:
-        name_key, value_key = auto_detect_keys(data_list)
+    if not name_key:
+        name_key, _ = auto_detect_keys(data_list)
+    
+    if not value_keys:
+        _, value_key = auto_detect_keys(data_list)
+        value_keys = [value_key]
+    
+    if series_names is None:
+        series_names = [f"{value_key}分布" for value_key in value_keys]
     
     # 验证字段存在
-    if value_key not in data_list[0] or name_key not in data_list[0]:
-        raise KeyError(f"数据中未找到推断的字段: '{value_key}' 或 '{name_key}'")
+    for value_key in value_keys:
+        if value_key not in data_list[0] or name_key not in data_list[0]:
+            raise KeyError(f"数据中未找到推断的字段: '{value_key}' 或 '{name_key}'")
     
-    # 生成数据项
-    echarts_data = [
-        {"value": item[value_key], "name": item[name_key]}
-        for item in data_list
-    ]
+    all_echarts_data = []
+    for value_key in value_keys:
+        echarts_data = [
+            {"value": item[value_key], "name": item[name_key]}
+            for item in data_list
+        ]
+        all_echarts_data.append(echarts_data)
     
     # 自动生成标题
     if not title:
         unit = ""
-        sample_value = data_list[0][value_key]
+        sample_value = data_list[0][value_keys[0]]
         if isinstance(sample_value, float):
             unit = "%"
-        title = f"{name_key} {value_key}分布{unit}饼图"
+        title = f"{name_key} {', '.join(value_keys)}分布{unit}饼图"
     
-    # 自动生成系列名称
-    if not series_name:
-        series_name = f"{value_key}分布"
-    
-    # 处理单位
-    unit = ""
-    first_item_value = data_list[0][value_key]
-    if isinstance(first_item_value, float):
-        unit = "%"
-    
-    # 构造配置
-    # 动态生成颜色列表
-    color_list = generate_colors(len(data_list))
-
-    config = {
-        "animation": True,  # 开启动画效果
-        "animationDuration": 1000,  # 动画持续时间，单位为毫秒
-        "animationEasing": "cubicOut",  # 动画缓动效果，cubicOut 是一种常见的缓动函数
-        "title": {
-            # 标题文本内容
-            "text": title,
-            # 标题水平对齐方式，这里设置为居中
-            "left": "center",
-            # 标题文本样式配置
-            "textStyle": {
-                # 标题字体大小
-                "fontSize": 16,
-                # 标题字体粗细
-                "fontWeight": "bold"
-            }
-        },
-        # 鼠标悬停提示框配置
-        "tooltip": {
-            # 触发类型，'item' 表示鼠标悬停在数据项上时触发
-            "trigger": "item",
-            # 提示框内容格式，{a} 系列名，{b} 数据项名称，{c} 数据值，{d} 百分比
-            "formatter": f"{{a}}<br/>{{b}}: {{c}}{unit} ({{d}}%)"
-        },
-        # 图例配置
-        "legend": {
-            # 图例排列方向，'vertical' 表示垂直排列
-            "orient": "vertical",
-            # 图例距离容器右侧的距离
-            "left": "15%",
-            # 图例垂直居中显示
-            "top": "center",
-            # 图例标题配置
-            "title": {"text": series_name, "show": True},
-            # 图例的数据项名称列表
-            "data": [item[name_key] for item in data_list]
-        },
-        # 系列配置，可包含多个系列
-        "series": [
-            {
-                # 系列名称，会显示在图例和提示框中
-                "name": series_name,
-                # 图表类型，这里是饼图
-                "type": "pie",
-                # 饼图的内外半径，这里设置为环形饼图
-                "radius": ["40%", "70%"],
-                # 是否避免标签重叠
-                "avoidLabelOverlap": False,
-                # 数据项样式配置
-                "itemStyle": {
-                    # 数据项边框圆角
-                    "borderRadius": 10,
-                    # 数据项边框颜色
-                    "borderColor": "#fff",
-                    # 数据项边框宽度
-                    "borderWidth": 2
-                },
-                # 数据标签配置
-                "label": {
-                    # 是否显示标签
-                    "show": False,
-                    # 标签位置，'center' 表示显示在饼图中心，outside表示外面
-                    "position": "center",
-                },
-                # 鼠标悬停高亮时的配置
-                "emphasis": {
-                    # 高亮时的标签配置
+    configs = []
+    for i, echarts_data in enumerate(all_echarts_data):
+        color_list = generate_colors(len(data_list))
+        config = {
+            "animation": True,
+            "animationDuration": 1000,
+            "animationEasing": "cubicOut",
+            "title": {
+                "text": title,
+                "left": "center",
+                "textStyle": {
+                    "fontSize": 16,
+                    "fontWeight": "bold"
+                }
+            },
+            "tooltip": {
+                "trigger": "item",
+                "formatter": f"{{a}}<br/>{{b}}: {{c}}{unit} ({{d}}%)"
+            },
+            "legend": {
+                "orient": "vertical",
+                "left": "15%",
+                "top": "center",
+                "title": {"text": series_names[i], "show": True},
+                "data": [item[name_key] for item in data_list]
+            },
+            "series": [
+                {
+                    "name": series_names[i],
+                    "type": "pie",
+                    "radius": ["40%", "70%"],
+                    "avoidLabelOverlap": False,
+                    "itemStyle": {
+                        "borderRadius": 10,
+                        "borderColor": "#fff",
+                        "borderWidth": 2
+                    },
                     "label": {
-                        # 高亮时显示标签
-                        "show": True,
-                        # 高亮时标签字体大小
-                        "fontSize": "18",
-                        # 高亮时标签字体粗细
-                        "fontWeight": "bold"
-                    }
-                },
-                # 标签线配置
-                "labelLine": {
-                    # 是否显示标签线
-                    "show": False
-                },
-                # 饼图的数据列表
-                "data": echarts_data
-            }
-        ],
-        # 饼图各数据项的颜色列表，按顺序依次应用
-        "color": color_list
-    }
+                        "show": False,
+                        "position": "center",
+                    },
+                    "emphasis": {
+                        "label": {
+                            "show": True,
+                            "fontSize": "18",
+                            "fontWeight": "bold"
+                        }
+                    },
+                    "labelLine": {
+                        "show": False
+                    },
+                    "data": echarts_data
+                }
+            ],
+            "color": color_list
+        }
+        configs.append(config)
     
-    return json.dumps(config, indent=4, ensure_ascii=False)
+    return json.dumps(configs, indent=4, ensure_ascii=False)
 
 def generate_echarts_bar(
     data_list: list,
     name_key: str = None,
-    value_key: str = None,
+    value_keys: list = None,
     title: str = None,
-    series_name: str = None
+    series_names: list = None
 ) -> str:
-    """生成通用 ECharts 柱状图配置，支持自动推断字段"""
+    """生成通用 ECharts 柱状图配置，支持自动推断字段和多维数据"""
     if not data_list:
         raise ValueError("数据列表不能为空")
     
-    # 自动检测 name_key 和 value_key（如果未提供）
-    if not name_key or not value_key:
-        name_key, value_key = auto_detect_keys(data_list)
+    if not name_key:
+        name_key, _ = auto_detect_keys(data_list)
+    
+    if not value_keys:
+        _, value_key = auto_detect_keys(data_list)
+        value_keys = [value_key]
+    
+    if series_names is None:
+        series_names = [f"{value_key}分布" for value_key in value_keys]
     
     # 验证字段存在
-    if value_key not in data_list[0] or name_key not in data_list[0]:
-        raise KeyError(f"数据中未找到推断的字段: '{value_key}' 或 '{name_key}'")
+    for value_key in value_keys:
+        if value_key not in data_list[0] or name_key not in data_list[0]:
+            raise KeyError(f"数据中未找到推断的字段: '{value_key}' 或 '{name_key}'")
     
-    # 生成数据项
     x_axis_data = [item[name_key] for item in data_list]
-    series_data = [item[value_key] for item in data_list]
+    series_data_list = []
+    for value_key in value_keys:
+        series_data = [item[value_key] for item in data_list]
+        series_data_list.append(series_data)
     
     # 自动生成标题
     if not title:
         unit = ""
-        sample_value = data_list[0][value_key]
+        sample_value = data_list[0][value_keys[0]]
         if isinstance(sample_value, float):
             unit = "%"
-        title = f"{name_key} {value_key}分布{unit}柱状图"
-    
-    # 自动生成系列名称
-    if not series_name:
-        series_name = f"{value_key}分布"
+        title = f"{name_key} {', '.join(value_keys)}分布{unit}柱状图"
     
     # 处理单位
     unit = ""
-    first_item_value = data_list[0][value_key]
+    first_item_value = data_list[0][value_keys[0]]
     if isinstance(first_item_value, float):
         unit = "%"
     
     # 动态生成颜色列表
-    color_list = generate_colors(len(data_list))
+    color_list = generate_colors(len(value_keys))  # 关键修改点1
+
+    # 处理单位（移动到tooltip配置前）
+    unit = ""
+    if value_keys:
+        first_item_value = data_list[0][value_keys[0]]
+        if isinstance(first_item_value, float):
+            unit = "%"
 
     # 构造配置
     config = {
-        "animation": True,  # 添加动画效果
-        "animationDuration": 1000,  # 动画持续时间
+        "animation": True,
+        "animationDuration": 1000,
         "title": {"text": title, "left": "center"},
         "tooltip": {
-            "trigger": "axis",
-            "formatter": f"{{a}}<br/>{{b}}: {{c}}{unit}",
-            "backgroundColor": 'rgba(50,50,50,0.9)',  # 提示框背景色
+            "trigger": "item",
+            "formatter": "{a}<br/>{b}: {c}" + unit,
+            "backgroundColor": 'rgba(50,50,50,0.9)',
             "textStyle": {
-                "color": '#fff'  # 提示框文字颜色
+                "color": '#fff'
             },
-            "borderColor": '#333',  # 提示框边框颜色
-            "borderWidth": 1  # 提示框边框宽度
+            "borderColor": '#333',
+            "borderWidth": 1
         },
         "xAxis": {
             "type": "category",
             "data": x_axis_data,
             "axisTick": {
-                "alignWithLabel": True  # 刻度线与标签对齐
+                "alignWithLabel": True
             },
             "axisLabel": {
-                "rotate": 45,  # x 轴标签旋转 45 度，避免标签过长重叠
-                "interval": 0  # 强制显示所有标签
+                "rotate": 45,
+                "interval": 0
             },
             "splitLine": {
-                "show": True,  # 显示 x 轴网格线
+                "show": True,
                 "lineStyle": {
-                    "color": ['#eee'],  # 网格线颜色
-                    "type": 'dashed'  # 网格线样式
+                    "color": ['#eee'],
+                    "type": 'dashed'
                 }
             }
         },
         "yAxis": {
             "type": "value",
             "splitLine": {
-                "show": True,  # 显示 y 轴网格线
+                "show": True,
                 "lineStyle": {
-                    "color": ['#eee'],  # 网格线颜色
-                    "type": 'dashed'  # 网格线样式
+                    "color": ['#eee'],
+                    "type": 'dashed'
                 }
             }
         },
-        "series": [
-            {
-                "name": series_name,
-                "type": "bar",
-                "data": series_data,
-                "itemStyle": {
-                    # 预先计算每个柱子的颜色
-                    "color": color_list,
-                    "barBorderRadius": [5, 5, 0, 0],  # 柱子圆角
-                    "shadowBlur": 10,  # 阴影模糊程度
-                    "shadowColor": 'rgba(0, 0, 0, 0.3)'  # 阴影颜色
+        "legend": {  # 新增图例配置
+            "data": series_names,
+            "left": "center",
+            "bottom": "0%",
+            "textStyle": {
+                    "fontSize": 12
                 }
-            }
-        ]
+        },
+        "series": []
     }
+    
+    for i, series_data in enumerate(series_data_list):
+        series_config = {
+            "name": series_names[i],
+            "type": "bar",
+            "data": series_data,
+            "itemStyle": {
+                "color": color_list[i],
+                "barBorderRadius": [5, 5, 0, 0],
+                "shadowBlur": 10,
+                "shadowColor": 'rgba(0, 0, 0, 0.3)'
+            }
+        }
+        config["series"].append(series_config)
     
     return json.dumps(config, indent=4, ensure_ascii=False)
 
 def generate_echarts_line(
     data_list: list,
     name_key: str = None,
-    value_key: str = None,
+    value_keys: list = None,
     title: str = None,
-    series_name: str = None
+    series_names: list = None
 ) -> str:
-    """生成通用 ECharts 折线图配置，支持自动推断字段"""
+    """生成通用 ECharts 折线图配置，支持自动推断字段和多维数据"""
     if not data_list:
         raise ValueError("数据列表不能为空")
     
-    # 自动检测 name_key 和 value_key（如果未提供）
-    if not name_key or not value_key:
-        name_key, value_key = auto_detect_keys(data_list)
+    if not name_key:
+        name_key, _ = auto_detect_keys(data_list)
+    
+    if not value_keys:
+        _, value_key = auto_detect_keys(data_list)
+        value_keys = [value_key]
+    
+    if series_names is None:
+        series_names = [f"{value_key}分布" for value_key in value_keys]
     
     # 验证字段存在
-    if value_key not in data_list[0] or name_key not in data_list[0]:
-        raise KeyError(f"数据中未找到推断的字段: '{value_key}' 或 '{name_key}'")
+    for value_key in value_keys:
+        if value_key not in data_list[0] or name_key not in data_list[0]:
+            raise KeyError(f"数据中未找到推断的字段: '{value_key}' 或 '{name_key}'")
     
-    # 生成数据项
     x_axis_data = [item[name_key] for item in data_list]
-    series_data = [item[value_key] for item in data_list]
+    series_data_list = []
+    for value_key in value_keys:
+        series_data = [item[value_key] for item in data_list]
+        series_data_list.append(series_data)
     
     # 自动生成标题
     if not title:
         unit = ""
-        sample_value = data_list[0][value_key]
+        sample_value = data_list[0][value_keys[0]]
         if isinstance(sample_value, float):
             unit = "%"
-        title = f"{name_key} {value_key}分布{unit}折线图"
-    
-    # 自动生成系列名称
-    if not series_name:
-        series_name = f"{value_key}分布"
+        title = f"{name_key} {', '.join(value_keys)}分布{unit}折线图"
     
     # 处理单位
     unit = ""
-    first_item_value = data_list[0][value_key]
+    first_item_value = data_list[0][value_keys[0]]
     if isinstance(first_item_value, float):
         unit = "%"
-    
+    # 动态生成颜色列表（按系列数量生成）
+    color_list = generate_colors(len(value_keys))  # 关键修改点1
     # 构造配置
     config = {
-        "animation": True,  # 添加动画效果
-        "animationDuration": 1000,  # 动画持续时间
+        "animation": True,
+        "animationDuration": 1000,
         "title": {"text": title, "left": "center"},
         "tooltip": {
-            "trigger": "axis",
-            "formatter": f"{{a}}<br/>{{b}}: {{c}}{unit}",
-            "backgroundColor": 'rgba(50,50,50,0.9)',  # 提示框背景色
+            "trigger": "item",
+            "formatter": "{a}<br/>{b}: {c}" + unit,
+            "backgroundColor": 'rgba(50,50,50,0.9)',
             "textStyle": {
-                "color": '#fff'  # 提示框文字颜色
+                "color": '#fff'
             },
-            "borderColor": '#333',  # 提示框边框颜色
-            "borderWidth": 1  # 提示框边框宽度
+            "borderColor": '#333',
+            "borderWidth": 1
         },
         "xAxis": {
             "type": "category",
             "data": x_axis_data,
             "axisTick": {
-                "alignWithLabel": True  # 刻度线与标签对齐
+                "alignWithLabel": True
             },
             "splitLine": {
-                "show": True,  # 显示 x 轴网格线
+                "show": True,
                 "lineStyle": {
-                    "color": ['#eee'],  # 网格线颜色
-                    "type": 'dashed'  # 网格线样式
+                    "color": ['#eee'],
+                    "type": 'dashed'
                 }
             }
         },
         "yAxis": {
             "type": "value",
             "splitLine": {
-                "show": True,  # 显示 y 轴网格线
+                "show": True,
                 "lineStyle": {
-                    "color": ['#eee'],  # 网格线颜色
-                    "type": 'dashed'  # 网格线样式
+                    "color": ['#eee'],
+                    "type": 'dashed'
                 }
             }
         },
-        "series": [
-            {
-                "name": series_name,
-                "type": "line",
-                "data": series_data,
-                "smooth": True,  # 折线平滑
-                "lineStyle": {
-                    "width": 2,  # 折线宽度
-                    "color": '#5470c6'  # 折线颜色
-                },
-                "itemStyle": {
-                    "color": '#5470c6'  # 数据点颜色
-                },
-                "symbol": 'circle',  # 数据点形状
-                "symbolSize": 8  # 数据点大小
+        "legend": {  # 新增图例配置
+            "data": series_names,
+            "left": "center",
+            "bottom": "10%",
+            "textStyle": {
+                "fontSize": 12
             }
-        ]
+        },
+        "series": []
     }
+    
+    for i, series_data in enumerate(series_data_list):
+        series_config = {
+            "name": series_names[i],
+            "type": "line",
+            "data": series_data,
+            "smooth": True,
+            "lineStyle": {
+                "width": 2,
+                "color": color_list[i]
+            },
+            "itemStyle": {
+                "color": color_list[i]
+            },
+            "symbol": 'circle',
+            "symbolSize": 8
+        }
+        config["series"].append(series_config)
     
     return json.dumps(config, indent=4, ensure_ascii=False)
 
@@ -402,14 +403,23 @@ class Json2chartTool(Tool):
         chart_type = tool_parameters.get("chart_type", "饼状图")
         chart_data = tool_parameters.get("chart_data", [])
         chart_title = tool_parameters.get("chart_title", "图表")
+        value_keys = tool_parameters.get("value_keys", None)
+        series_names = tool_parameters.get("series_names", None)
         try:
             data_list = json.loads(chart_data)
+            # 解析 value_keys
+            if value_keys:
+                value_keys = json.loads(value_keys.replace("'", "\""))
+            # 解析 series_names
+            if series_names:
+                series_names = json.loads(series_names.replace("'", "\""))
+
             if chart_type == "饼状图":
-                echarts_config = generate_echarts_pie(data_list, title=chart_title)
+                echarts_config = generate_echarts_pie(data_list, title=chart_title, value_keys=value_keys, series_names=series_names)
             elif chart_type == "柱状图":
-                echarts_config = generate_echarts_bar(data_list, title=chart_title)
+                echarts_config = generate_echarts_bar(data_list, title=chart_title, value_keys=value_keys, series_names=series_names)
             elif chart_type == "折线图":
-                echarts_config = generate_echarts_line(data_list, title=chart_title)
+                echarts_config = generate_echarts_line(data_list, title=chart_title, value_keys=value_keys, series_names=series_names)
             else:
                 raise ValueError(f"不支持的图表类型: {chart_type}")
 
