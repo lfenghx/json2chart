@@ -178,3 +178,4 @@ cython_debug/
 # Windows
 Thumbs.db
 myenv/
+bak/

@@ -16,7 +16,7 @@ parameters:
     type: string
     required: true
     label:
-      en_US: chart data
+      en_US: chart_data
       zh_Hans: 图表数据
     human_description:
       en_US: Please input the chart data
@@ -25,59 +25,39 @@ parameters:
     form: llm
   - name: chart_title
     type: string
-    required: true
+    required: false
     label:
       en_US: chart_title
       zh_Hans: 图表标题
     human_description:
       en_US: Please input the chart title
-      zh_Hans: 请输入图表标题
+      zh_Hans: 请输入图表标题，如果不写则由大模型自己生成
     llm_description: 一个把JSON转成图表的插件
     form: llm
   - name: chart_type
     type: string
-    required: true
+    required: false
     label:
       en_US: chart_type
       zh_Hans: 图表类型
     human_description:
       en_US: Please input the chart title
-      zh_Hans: 请输入图表类型，目前支持柱状图，饼状图，折线图
+      zh_Hans: 请输入图表类型，目前支持柱状图，饼状图，折线图，如果不写则由大模型自己生成
     llm_description: 一个把JSON转成图表的插件
     form: llm
-  - name: name_key
-    type: string
+  - name: model
+    type: model-selector
+    scope: llm
     required: true
     label:
-      en_US: name_key
-      zh_Hans: 横坐标对应的key
+      en_US: llm
+      zh_Hans: 大模型
     human_description:
-      en_US: Please input the chart title
-      zh_Hans: 请输入横坐标对应的key，字符串格式
-    llm_description: 一个把JSON转成图表的插件
-    form: llm
-  - name: value_keys
-    type: string
-    required: true
-    label:
-      en_US: value_keys
-      zh_Hans: 纵坐标对应的key
-    human_description:
-      en_US: Please input the chart title
-      zh_Hans: 请输入纵坐标对应的key，用数组形式输入，例如["value1","value2"]
-    llm_description: 一个把JSON转成图表的插件
-    form: llm
-  - name: series_names
-    type: string
-    required: true
-    label:
-      en_US: series_names
-      zh_Hans: 图表系列名称
-    human_description:
-      en_US: Please input the chart title
-      zh_Hans: 请输入图表值对应的名称，用数组形式输入，例如["series1","series2"]
-    llm_description: 一个把JSON转成图表的插件
-    form: llm
+      en_US: selector a LLM
+      zh_Hans: 选择一个大模型
+    llm_description: 调用的大模型
+    form: form
+
 extra:
   python:
     source: tools/json2chart.py

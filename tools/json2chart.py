@@ -5,6 +5,9 @@ from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 import json
 import colorsys
+from dify_plugin.entities.model.llm import LLMModelConfig
+from dify_plugin.entities.model.message import SystemPromptMessage, UserPromptMessage
+import pandas as pd
 
 def auto_detect_keys(data_list: list) -> tuple:
     """自动检测数据中的名称字段和值字段"""
@@ -88,71 +91,94 @@ def generate_echarts_pie(
     
     # 自动生成标题
     if not title:
-        unit = ""
-        sample_value = data_list[0][value_keys[0]]
-        if isinstance(sample_value, float):
-            unit = "%"
-        title = f"{name_key} {', '.join(value_keys)}分布{unit}饼图"
-    
-    configs = []
+        title = f"{name_key} {', '.join(value_keys)}分布饼图"
+
+    legend_data = [item[name_key] for item in data_list]
+
+    max_radius = 70  # 最大半径
+    min_radius = 30   # 最小内径
+    ring_width = (max_radius - min_radius) / len(all_echarts_data) if len(all_echarts_data) > 1 else 20
+
+    # 生成颜色列表，按数据项数量生成
+    color_list = generate_colors(len(data_list))
+
+    # 构造单个配置对象
+    config = {
+        "animation": True,
+        "animationDuration": 1000,
+        "animationEasing": "cubicOut",
+        "title": {
+            "text": title,
+            "left": "center",
+            "textStyle": {
+                "fontSize": 16,
+                "fontWeight": "bold"
+            }
+        },
+        "tooltip": {
+            "trigger": "item",
+            "formatter": "{a}<br/>{b}: {c} ({d}%)"
+        },
+        "legend": {
+            "type": "scroll",  # 添加滚动功能
+            "orient": "horizontal",  # 水平布局
+            "left": "center",
+            "bottom": "0%",  # 图例放在底部
+            "textStyle": {
+                "fontSize": 10  # 减小字体大小
+            },
+            "data": legend_data
+        },
+        "series": [],
+        "color": color_list
+    }
+
+    # 计算每个系列的半径，避免饼图重叠
+    series_count = len(all_echarts_data)
+    radius_step = 20 // series_count  # 根据系列数量计算半径步长
+
     for i, echarts_data in enumerate(all_echarts_data):
-        color_list = generate_colors(len(data_list))
-        config = {
-            "animation": True,
-            "animationDuration": 1000,
-            "animationEasing": "cubicOut",
-            "title": {
-                "text": title,
-                "left": "center",
-                "textStyle": {
-                    "fontSize": 16,
+        # 外层系列用大半径，内层系列用小半径
+        outer_radius = max_radius - i * ring_width
+        inner_radius = max(outer_radius - ring_width, 0)
+
+        series_config = {
+            "name": series_names[i],
+            "type": "pie",
+            "radius": [f"{inner_radius}%", f"{outer_radius}%"],  # 调整每个系列的半径
+            "avoidLabelOverlap": True,  # 开启标签重叠处理
+            "itemStyle": {
+                "borderRadius": 10,
+                "borderColor": "#fff",
+                "borderWidth": 2
+            },
+            "label": {
+                "show": False,
+                "position": "center",
+            },
+            "emphasis": {
+                "label": {
+                    "show": True,
+                    "fontSize": "18",
                     "fontWeight": "bold"
                 }
             },
-            "tooltip": {
-                "trigger": "item",
-                "formatter": f"{{a}}<br/>{{b}}: {{c}}{unit} ({{d}}%)"
+            "labelLine": {
+                "show": False
             },
-            "legend": {
-                "orient": "vertical",
-                "left": "15%",
-                "top": "center",
-                "title": {"text": series_names[i], "show": True},
-                "data": [item[name_key] for item in data_list]
-            },
-            "series": [
+            "data": [
                 {
-                    "name": series_names[i],
-                    "type": "pie",
-                    "radius": ["40%", "70%"],
-                    "avoidLabelOverlap": False,
-                    "itemStyle": {
-                        "borderRadius": 10,
-                        "borderColor": "#fff",
-                        "borderWidth": 2
-                    },
-                    "label": {
-                        "show": False,
-                        "position": "center",
-                    },
-                    "emphasis": {
-                        "label": {
-                            "show": True,
-                            "fontSize": "18",
-                            "fontWeight": "bold"
-                        }
-                    },
-                    "labelLine": {
-                        "show": False
-                    },
-                    "data": echarts_data
+                    "value": item[value_keys[i]],
+                    "name": item[name_key],
+                    # 保持颜色与图例一致
+                    "itemStyle": {"color": color_list[j]}
                 }
-            ],
-            "color": color_list
+                for j, item in enumerate(data_list)
+            ]
         }
-        configs.append(config)
-    
-    return json.dumps(configs, indent=4, ensure_ascii=False)
+        config["series"].append(series_config)
+
+    return json.dumps(config, indent=4, ensure_ascii=False)
 
 def generate_echarts_bar(
     data_list: list,
@@ -188,27 +214,10 @@ def generate_echarts_bar(
     
     # 自动生成标题
     if not title:
-        unit = ""
-        sample_value = data_list[0][value_keys[0]]
-        if isinstance(sample_value, float):
-            unit = "%"
-        title = f"{name_key} {', '.join(value_keys)}分布{unit}柱状图"
-    
-    # 处理单位
-    unit = ""
-    first_item_value = data_list[0][value_keys[0]]
-    if isinstance(first_item_value, float):
-        unit = "%"
-    
-    # 动态生成颜色列表
-    color_list = generate_colors(len(value_keys))  # 关键修改点1
+        title = f"{name_key} {', '.join(value_keys)}分布柱状图"
 
-    # 处理单位（移动到tooltip配置前）
-    unit = ""
-    if value_keys:
-        first_item_value = data_list[0][value_keys[0]]
-        if isinstance(first_item_value, float):
-            unit = "%"
+    # 动态生成颜色列表
+    color_list = generate_colors(len(value_keys))
 
     # 构造配置
     config = {
@@ -217,7 +226,7 @@ def generate_echarts_bar(
         "title": {"text": title, "left": "center"},
         "tooltip": {
             "trigger": "item",
-            "formatter": "{a}<br/>{b}: {c}" + unit,
+            "formatter": "{a}<br/>{b}: {c}",
             "backgroundColor": 'rgba(50,50,50,0.9)',
             "textStyle": {
                 "color": '#fff'
@@ -314,19 +323,10 @@ def generate_echarts_line(
     
     # 自动生成标题
     if not title:
-        unit = ""
-        sample_value = data_list[0][value_keys[0]]
-        if isinstance(sample_value, float):
-            unit = "%"
-        title = f"{name_key} {', '.join(value_keys)}分布{unit}折线图"
-    
-    # 处理单位
-    unit = ""
-    first_item_value = data_list[0][value_keys[0]]
-    if isinstance(first_item_value, float):
-        unit = "%"
+        title = f"{name_key} {', '.join(value_keys)}分布折线图"
+
     # 动态生成颜色列表（按系列数量生成）
-    color_list = generate_colors(len(value_keys))  # 关键修改点1
+    color_list = generate_colors(len(value_keys))
     # 构造配置
     config = {
         "animation": True,
@@ -334,7 +334,7 @@ def generate_echarts_line(
         "title": {"text": title, "left": "center"},
         "tooltip": {
             "trigger": "item",
-            "formatter": "{a}<br/>{b}: {c}" + unit,
+            "formatter": "{a}<br/>{b}: {c}",
             "backgroundColor": 'rgba(50,50,50,0.9)',
             "textStyle": {
                 "color": '#fff'
@@ -400,21 +400,94 @@ def generate_echarts_line(
 class Json2chartTool(Tool):
     
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage]:
-        chart_type = tool_parameters.get("chart_type", "饼状图")
         chart_data = tool_parameters.get("chart_data", [])
-        chart_title = tool_parameters.get("chart_title", "图表")
-        value_keys = tool_parameters.get("value_keys", None)
-        series_names = tool_parameters.get("series_names", None)
-        name_key = tool_parameters.get("name_key", None)
+        chart_title = tool_parameters.get("chart_title")
+        chart_type = tool_parameters.get("chart_type")
+        model = tool_parameters.get("model")
         
+        # 检查 chart_data 是否为字符串，若是则尝试解析为 JSON
+        if isinstance(chart_data, str):
+            try:
+                chart_data = json.loads(chart_data)
+            except json.JSONDecodeError:
+                yield self.create_text_message("图表数据不是有效的 JSON 格式")
+                return
+
         try:
-            data_list = json.loads(chart_data)
-            # 解析 value_keys
-            if value_keys:
-                value_keys = json.loads(value_keys.replace("'", "\""))
-            # 解析 series_names
-            if series_names:
-                series_names = json.loads(series_names.replace("'", "\""))
+            df = pd.DataFrame(chart_data)
+            data_list = df.to_dict(orient='records')  # 将 DataFrame 转换为列表
+
+            # 提取表头和前三行数据并转换为类似 Markdown 格式，设置 index=False 避免输出索引列
+            sample_data = df.head(3).to_csv(sep='|', na_rep='nan', index=False)
+            sample_markdown = '|' + sample_data.replace('\n', '\n|')
+
+            # 调用大模型生成配置参数
+            try:
+                response = self.session.model.llm.invoke(
+                    model_config=LLMModelConfig(
+                        provider=model.get('provider'),
+                        model=model.get('model'),
+                        mode=model.get('mode'),
+                        completion_params=model.get('completion_params'),
+                    ),
+                    prompt_messages=[
+                        SystemPromptMessage(
+                            content="""
+                            你是一个专业的数据可视化专家，需要根据给定的 Markdown 表格数据，判断合适的横坐标和纵坐标，用于生成可视化图表。请遵循以下规则：
+                            1. 输出格式必须为 JSON，包含`chart_type`, `chart_title`, `name_key`, `value_keys`, `series_names` 字段。
+                            2. `chart_type` 的值为字符串，代表图表类型，目前仅支持“柱状图”、“折线图”、“饼状图”。若用户指定了图表类型，则按用户的来，若没有指定，则你根据表格样例信息自动判断。
+                            3. `chart_title` 的值为字符串，代表图表标题，若用户指定了标题，则按用户的来，若没有指定，则你根据表格样例信息自动生成。
+                            4. `name_key` 的值为一个字符串，代表横坐标的 key，必须为 Markdown 表格中已有的表头字段。
+                            5. `value_keys` 的值为一个字符串数组，代表纵坐标的 key，可包含多个 key，这些 key 必须为 Markdown 表格中已有的表头字段，尽可能把所有数值列都包含进来。
+                            6. `series_names` 的值为一个字符串数组，是 `value_keys` 对应 key 的中文翻译，与 `value_keys` 数组元素一一对应。
+                            7. 请根据 markdown 表格数据内容，抓取对数据分析有展现价值的 key。
+                            8. 确保横纵坐标的选取有数据分析意义，避免选取序号等无分析价值的字段。
+                            9. 只输出标准的 json 格式内容，不要包含```json```标签，不要输出其他任何文字。
+                            """
+                        ),
+                        UserPromptMessage(
+                            content=f"用户指定的类型：{chart_type}\n用户指定的标题：{chart_title}\n表格的样例数据:\n{sample_markdown}"
+                        )
+                    ],
+                    stream=False
+                )
+            except Exception as e:
+                yield self.create_text_message(f"调用大模型生成配置失败: {str(e)}")
+                return
+
+            # 提取大模型返回的 JSON 数据
+            try:
+                config_params = json.loads(response.message.content)
+                required_fields = ["chart_type", "chart_title", "name_key", "value_keys", "series_names"]
+                for field in required_fields:
+                    if field not in config_params:
+                        raise ValueError(f"大模型返回的 JSON 缺少必要字段: {field}")
+
+                chart_type = config_params["chart_type"]
+                chart_title = config_params["chart_title"]
+                name_key = config_params["name_key"]
+                value_keys = config_params["value_keys"]
+                series_names = config_params["series_names"]
+
+                if len(value_keys) != len(series_names):
+                    raise ValueError("value_keys 和 series_names 的长度不一致")
+
+                if name_key not in df.columns:
+                    raise ValueError(f"name_key {name_key} 不存在于 DataFrame 中")
+
+                for value_key in value_keys:
+                    if value_key not in df.columns:
+                        raise ValueError(f"value_key {value_key} 不存在于 DataFrame 中")
+
+            except json.JSONDecodeError:
+                yield self.create_text_message(f"大模型返回的内容不是有效的 JSON 格式")
+                return
+
+            # 根据图表类型生成 ECharts 配置
+            supported_chart_types = ["饼状图", "柱状图", "折线图"]
+            if chart_type not in supported_chart_types:
+                yield self.create_text_message(f"不支持的图表类型: {chart_type}")
+                return
 
             if chart_type == "饼状图":
                 echarts_config = generate_echarts_pie(data_list, name_key=name_key, title=chart_title, value_keys=value_keys, series_names=series_names)
@@ -422,10 +495,8 @@ class Json2chartTool(Tool):
                 echarts_config = generate_echarts_bar(data_list, name_key=name_key, title=chart_title, value_keys=value_keys, series_names=series_names)
             elif chart_type == "折线图":
                 echarts_config = generate_echarts_line(data_list, name_key=name_key, title=chart_title, value_keys=value_keys, series_names=series_names)
-            else:
-                raise ValueError(f"不支持的图表类型: {chart_type}")
 
-            yield self.create_text_message(f"```echarts\n{echarts_config}\n```")
+            yield self.create_text_message(f"\n```echarts\n{echarts_config}\n```")
 
         except Exception as e:
             yield self.create_text_message(f"生成失败！错误信息: {str(e)}")
