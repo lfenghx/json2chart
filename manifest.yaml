@@ -1,17 +1,17 @@
-version: 1.0.0
+version: 1.2.0
 type: plugin
 author: lfenghx
 name: json2chart
 label:
   en_US: json2chart
   ja_JP: json2chart
-  zh_Hans: json2chart
+  zh_Hans: AI智能图表生成神器
   pt_BR: json2chart
 description:
-  en_US: 一个把JSON转成图表的插件
-  ja_JP: 一个把JSON转成图表的插件
+  en_US: one tool to convert json to chart
+  ja_JP: one tool to convert json to chart
   zh_Hans: 一个把JSON转成图表的插件
-  pt_BR: 一个把JSON转成图表的插件
+  pt_BR: one tool to convert json to chart
 icon: json2chart.svg
 resource:
   memory: 268435456
@@ -37,7 +37,7 @@ plugins:
   tools:
     - provider/json2chart.yaml
 meta:
-  version: 1.0.0
+  version: 1.2.0
   arch:
     - amd64
     - arm64

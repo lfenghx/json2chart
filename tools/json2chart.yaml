@@ -3,14 +3,14 @@ identity:
   author: lfenghx
   label:
     en_US: json2chart
-    zh_Hans: json2chart
+    zh_Hans: AI智能图表生成神器
     pt_BR: json2chart
 description:
   human:
-    en_US: 一个把JSON转成图表的插件
+    en_US: one tool that can convert JSON data to charts
     zh_Hans: 一个把JSON转成图表的插件
-    pt_BR: 一个把JSON转成图表的插件
-  llm: 一个把JSON转成图表的插件
+    pt_BR: one tool that can convert JSON data to charts
+  llm: one tool that can convert JSON data to charts
 parameters:
   - name: chart_data
     type: string
@@ -21,7 +21,7 @@ parameters:
     human_description:
       en_US: Please input the chart data
       zh_Hans: 请输入图表数据[标准json格式]
-    llm_description: 一个把JSON转成图表的插件
+    llm_description: please input the chart data in standard json format
     form: llm
   - name: chart_title
     type: string
@@ -32,7 +32,7 @@ parameters:
     human_description:
       en_US: Please input the chart title
       zh_Hans: 请输入图表标题，如果不写则由大模型自己生成
-    llm_description: 一个把JSON转成图表的插件
+    llm_description: chart_title
     form: llm
   - name: chart_type
     type: string
@@ -41,10 +41,38 @@ parameters:
       en_US: chart_type
       zh_Hans: 图表类型
     human_description:
-      en_US: Please input the chart title
-      zh_Hans: 请输入图表类型，目前支持柱状图，饼状图，折线图，如果不写则由大模型自己生成
-    llm_description: 一个把JSON转成图表的插件
+      en_US: Please input the chart type
+      zh_Hans: 请输入图表类型，目前支持柱状图，饼状图，折线图，雷达图，散点图，漏斗图，如果不写则由大模型自己生成
+    llm_description: chart_type,support bar, pie, line, radar, scatter, funnel
     form: llm
+  - name: saturation
+    type: number
+    required: false
+    label:
+      en_US: saturation
+      zh_Hans: 饱和度
+    human_description:
+      en_US: Please input the chart title
+      zh_Hans: 请输入饱和度，范围0-1，默认0.5
+    llm_description: saturation
+    form: form
+    min: 0
+    max: 1
+    default: 0.5
+  - name: brightness
+    type: number
+    required: false
+    label:
+      en_US: brightness
+      zh_Hans: 亮度
+    human_description:
+      en_US: Please input the chart title
+      zh_Hans: 请输入亮度，范围0-1，默认0.95
+    llm_description: brightness
+    form: form
+    min: 0
+    max: 1
+    default: 0.95
   - name: model
     type: model-selector
     scope: llm
@@ -55,7 +83,7 @@ parameters:
     human_description:
       en_US: selector a LLM
       zh_Hans: 选择一个大模型
-    llm_description: 调用的大模型
+    llm_description: model
     form: form
 
 extra:

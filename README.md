@@ -1,18 +1,63 @@
-## json2chart
+## AI Intelligent Chart Generation Tool (json2chart)
 
 **Author:** lfenghx
-**Version:** 1.0.0
+**Version:** 1.2.0
 **Type:** tool
 
 ### Description
 
-v0.0.1 这是一个可以把标准的 json 格式的数据转换为 echarts 图表的 dify 插件，目前支持的图表有：
+json2chart is an intelligent JSON data visualization tool that can automatically convert JSON format data into various types of interactive charts. The tool adopts LLM intelligent analysis technology to automatically identify data structures and recommend the best visualization solutions.
+![alt text](1.image.png)
 
-- 折线图
-- 柱状图
-- 饼图
-  但，目前只支持一个 key 一个 value 的数据格式，无法实现多柱状图，多折线图效果
+### Core Features
 
-  v0.0.2 新增支持多柱状图，多折线图效果
+#### Intelligent Data Analysis and Field Recognition
 
-  v1.0.0 新增大模型，让大模型来选择横纵坐标，系列，生成标题，图表类型
+- Automatically detect category fields and value fields in JSON data
+- Intelligently analyze data structure through large models and recommend the best chart type
+- Support automatically generating appropriate chart titles and data series names
+- Provide automatic fallback mechanism when field detection fails
+
+#### Multiple Chart Type Support
+
+- **Pie Chart**: Suitable for displaying proportional distribution data
+- **Bar Chart**: Suitable for comparing numerical sizes of different categories
+- **Line Chart**: Suitable for displaying data trends over time or other continuous variables
+- **Radar Chart**: Suitable for multi-dimensional data comparison analysis (requires at least 3 numerical fields)
+- **Funnel Chart**: Suitable for displaying process conversion rate data
+- **Scatter Chart**: Suitable for analyzing correlations between two numerical indicators
+
+#### Advanced Features
+
+- **Data Grouping Support**: Can display multi-series charts grouped by specified fields
+- **Custom Color Scheme**: Support adjusting the saturation and brightness of chart colors
+- **Intelligent Data Type Conversion**: Automatically attempt to convert relevant fields to appropriate numerical types
+- **Automatic Error Handling**: Provide friendly error prompts and exception handling mechanisms
+- **Multiple Data Format Support**: Accept JSON object arrays or JSON string formats
+
+### Technical Features
+
+- Generate interactive chart configurations based on ECharts
+- Integrate large model analysis capabilities to improve the intelligence of chart generation
+- Use pandas for data processing and analysis
+- Adopt modular design, each chart type is independently implemented for easy expansion
+- Support streaming output of chart configuration results
+
+### Typical Application Scenarios
+
+- Automatic visualization of data analysis reports
+- Business indicator monitoring dashboard generation
+- Quick display of statistical data
+- Data exploration and pattern discovery
+- Real-time visualization of API response data
+
+### Output Format
+
+The tool outputs standard ECharts configuration strings, which can be directly rendered into interactive charts in ECharts-supported environments.
+
+Plugin GitHub repository: https://github.com/lfenghx/json2chart
+
+Contact the author:
+Email: 550916599@qq.com
+WeChat: lfeng2529230
+github: lfenghx

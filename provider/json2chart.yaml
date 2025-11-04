@@ -3,12 +3,12 @@ identity:
   name: json2chart
   label:
     en_US: json2chart
-    zh_Hans: json2chart
+    zh_Hans: AI智能图表生成神器
     pt_BR: json2chart
   description:
-    en_US: 一个把JSON转成图表的插件
+    en_US: one tool to convert json to chart
     zh_Hans: 一个把JSON转成图表的插件
-    pt_BR: 一个把JSON转成图表的插件
+    pt_BR: one tool to convert json to chart
   icon: json2chart.svg
 tools:
   - tools/json2chart.yaml
