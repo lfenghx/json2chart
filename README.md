@@ -7,7 +7,9 @@
 ### Description
 
 json2chart is an intelligent JSON data visualization tool that can automatically convert JSON format data into various types of interactive charts. The tool adopts LLM intelligent analysis technology to automatically identify data structures and recommend the best visualization solutions.
-![alt text](1.image.png)
+![alt text](_assets/1.image.png)
+
+Video tutorial: https://www.bilibili.com/video/BV1qj1CB8Enz
 
 ### Core Features
 
@@ -64,6 +66,7 @@ One-dimensional data
 "效率": 77.0
 }
 ]
+![alt text](_assets/2.一维数据.png)
 
 Two-dimensional data
 [
@@ -80,6 +83,7 @@ Two-dimensional data
 "迟到总时间": 7
 }
 ]
+![alt text](_assets/3.二维数据.png)
 
 Three-dimensional data
 [
@@ -96,6 +100,7 @@ Three-dimensional data
 "早退次数": 3
 }
 ]
+![alt text](_assets/4.三维数据.png)
 
 Multi-dimensional line data
 [
@@ -132,6 +137,7 @@ Multi-dimensional line data
 {"成绩月份": "2025-01", "课程编号": "013", "成绩": 31.0},
 {"成绩月份": "2025-01", "课程编号": "103", "成绩": 89.0}
 ]
+![alt text](_assets/5.多维折线数据.png)
 
 Radar chart
 [
@@ -160,6 +166,7 @@ Radar chart
 "知名度": 75
 }
 ]
+![alt text](_assets/6.雷达图数据.png)
 
 Funnel chart
 [
@@ -184,6 +191,7 @@ Funnel chart
 "用户数": 1800
 }
 ]
+![alt text](_assets/7.漏斗图数据.png)
 
 Scatter chart
 [
@@ -224,6 +232,7 @@ Scatter chart
 "品牌": "品牌 X"
 }
 ]
+![alt text](_assets/8.散点图数据.png)
 
 ### Output Format
 
@@ -231,7 +240,8 @@ The tool outputs standard ECharts configuration strings, which can be directly r
 
 Plugin GitHub repository: https://github.com/lfenghx/json2chart
 
-Contact the author:
+### Contact the author
+
 Email: 550916599@qq.com
 WeChat: lfeng2529230
 github: lfenghx

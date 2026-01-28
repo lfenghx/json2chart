@@ -7,7 +7,9 @@
 ### 描述
 
 json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式的数据自动转换为多种类型的交互式图表。该工具采用 LLM 智能分析技术，自动识别数据结构并推荐最佳可视化方案。
-![alt text](1.image.png)
+![alt text](_assets/1.image.png)
+
+视频教程：https://www.bilibili.com/video/BV1qj1CB8Enz
 
 ### 核心功能
 
@@ -64,7 +66,7 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 "效率": 77.0
 }
 ]
-
+![alt text](_assets/2.一维数据.png)
 二维数据
 [
 {
@@ -80,6 +82,7 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 "迟到总时间": 7
 }
 ]
+![alt text](_assets/3.二维数据.png)
 
 三维数据
 [
@@ -96,6 +99,7 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 "早退次数": 3
 }
 ]
+![alt text](_assets/4.三维数据.png)
 
 多维度折线数据
 [
@@ -132,6 +136,7 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 {"成绩月份": "2025-01", "课程编号": "013", "成绩": 31.0},
 {"成绩月份": "2025-01", "课程编号": "103", "成绩": 89.0}
 ]
+![alt text](_assets/5.多维折线数据.png)
 
 雷达图
 [
@@ -160,6 +165,7 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 "知名度": 75
 }
 ]
+![alt text](_assets/6.雷达图数据.png)
 
 漏斗图
 [
@@ -184,6 +190,7 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 "用户数": 1800
 }
 ]
+![alt text](_assets/7.漏斗图数据.png)
 
 散点图
 [
@@ -224,6 +231,7 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 "品牌": "品牌 X"
 }
 ]
+![alt text](_assets/8.散点图数据.png)
 
 ### 输出格式
 
@@ -231,7 +239,8 @@ json2chart 是一个智能的 JSON 数据可视化工具，能够将 JSON 格式
 
 插件 github 仓库地址：https://github.com/lfenghx/json2chart
 
-联系作者：
+### 联系作者
+
 邮箱：550916599@qq.com
 vx：lfeng2529230
 github：lfenghx

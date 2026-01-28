@@ -8,10 +8,8 @@ label:
   zh_Hans: AI智能图表生成神器
   pt_BR: json2chart
 description:
-  en_US: one tool to convert json to chart
-  ja_JP: one tool to convert json to chart
-  zh_Hans: 一个把JSON转成图表的插件
-  pt_BR: one tool to convert json to chart
+  en_US: A plugin that converts JSON to charts with large models and ECharts
+  zh_Hans: 一个利用大模型+Echart把JSON转成图表的插件
 icon: json2chart.svg
 resource:
   memory: 268435456
@@ -32,7 +30,7 @@ resource:
       enabled: true
     storage:
       enabled: true
-      size: 1048576
+      size: 10485760
 plugins:
   tools:
     - provider/json2chart.yaml

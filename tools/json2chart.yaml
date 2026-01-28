@@ -4,13 +4,11 @@ identity:
   label:
     en_US: json2chart
     zh_Hans: AI智能图表生成神器
-    pt_BR: json2chart
 description:
   human:
-    en_US: one tool that can convert JSON data to charts
-    zh_Hans: 一个把JSON转成图表的插件
-    pt_BR: one tool that can convert JSON data to charts
-  llm: one tool that can convert JSON data to charts
+    en_US: A plugin that converts JSON to charts with large models and ECharts
+    zh_Hans: 一个利用大模型+Echart把JSON转成图表的插件
+    llm: A plugin that converts JSON to charts with large models and ECharts
 parameters:
   - name: chart_data
     type: string
