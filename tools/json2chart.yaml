@@ -8,7 +8,7 @@ description:
   human:
     en_US: A plugin that converts JSON to charts with large models and ECharts
     zh_Hans: 一个利用大模型+Echart把JSON转成图表的插件
-    llm: A plugin that converts JSON to charts with large models and ECharts
+  llm: A plugin that converts JSON to charts with large models and ECharts
 parameters:
   - name: chart_data
     type: string
